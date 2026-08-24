@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+# 같은 브랜치에 연속 푸시하면 이전 실행을 취소한다.
+# 무료 러너 시간은 유한한 자원이고, 중간 커밋의 결과는 어차피 안 본다.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: 타입 체크 & 빌드
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # npm ci는 package-lock.json과 정확히 일치하는 것만 설치한다.
+      # install은 락파일을 조용히 갱신할 수 있어 CI에서는 쓰지 않는다.
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 타입 체크
+        run: npm run typecheck
+
+      # 빌드에는 지도/Supabase 키가 필요 없다.
+      # 키는 전부 런타임에 읽히므로(process.env 직접 참조), 빌드는 시크릿 없이 통과해야 한다.
+      # 이게 깨진다면 빌드타임에 키를 요구하는 코드가 들어온 것이므로 그 자체가 결함이다.
+      - name: 프로덕션 빌드
+        run: npm run build
