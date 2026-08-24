@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { toPlace, type PlaceRow } from '@/lib/supabase/mappers';
+import { eachDateString } from '@/lib/time/dates';
 import type { Place, Trip, TripDay, TripStop } from '@/lib/domain/types';
 
 /**
@@ -86,7 +87,7 @@ export async function createTrip(input: {
 
   if (error) throw error;
 
-  const days = eachDate(input.startDate, input.endDate).map((date, i) => ({
+  const days = eachDateString(input.startDate, input.endDate).map((date, i) => ({
     trip_id: trip.id,
     day_number: i + 1,
     date,
@@ -259,13 +260,5 @@ function toTrip(row: TripRow): Trip {
   };
 }
 
-function eachDate(start: string, end: string): string[] {
-  const result: string[] = [];
-  const cursor = new Date(`${start}T00:00:00Z`);
-  const last = new Date(`${end}T00:00:00Z`);
-  while (cursor <= last) {
-    result.push(cursor.toISOString().slice(0, 10));
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
-  }
-  return result;
-}
+// 날짜 계산은 lib/time/dates.ts 로 일원화했다.
+// 여기저기 흩어지면 UTC/로컬 혼용 버그가 반드시 재발한다.

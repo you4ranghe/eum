@@ -1,4 +1,5 @@
 import type { OpeningPeriod, Place, Trip } from '@/lib/domain/types';
+import { addDays, toLocalDateString } from '@/lib/time/dates';
 
 /**
  * 개발용 목 데이터.
@@ -82,11 +83,8 @@ export const MOCK_PLACES: Place[] = [
 /** 2박 3일 제주 일정 샘플 — 요구사항의 "날짜 탭 3개" 시나리오를 그대로 재현한다. */
 export function createMockTrip(): Trip {
   const base = new Date();
-  const d = (offset: number) => {
-    const date = new Date(base);
-    date.setDate(base.getDate() + offset);
-    return date.toISOString().slice(0, 10);
-  };
+  // toISOString()은 UTC 기준이라 KST 09:00 이전에는 하루가 밀린다. 반드시 로컬 기준으로.
+  const d = (offset: number) => toLocalDateString(addDays(base, offset));
 
   const stop = (place: Place, order: number, arrival?: string, stay = 60) => ({
     id: `mock_stop_${place.id}_${order}`,
