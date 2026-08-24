@@ -99,15 +99,28 @@
 ## 3. Phase 1 — 지도가 뜬다 (M1)
 
 ### 🔴 W1-0. API 키 발급 — **차단**
-- [ ] 네이버 클라우드 플랫폼 가입 → **Maps (Web Dynamic Map)** 이용 신청 → Key ID 발급
-- [ ] NCP **Directions 5** 이용 신청 (동선 계산용, W3에서 사용)
-- [ ] NCP **Search(Local)** 또는 네이버 개발자센터 검색 API 발급
-- [ ] Google Cloud 프로젝트 생성 → **Maps JavaScript API / Places API (New) / Routes API** 활성화
-- [ ] 두 콘솔 모두 **일일 쿼터 상한** 설정 ← 이거 안 하면 유출 시 요금 폭탄
-- [ ] 브라우저 키는 `localhost:3000` + 배포 도메인으로 **HTTP 리퍼러 제한**
-- [ ] 서버 키는 리퍼러가 아니라 **API 제한**만 (서버에서 리퍼러를 못 보냄)
-- **역할**: P · **공수**: 1세션 (승인 대기 시간 별도)
-- **⚠️ 사용자가 직접 해야 함.** 이게 안 되면 W1-1 이후 전부 대기.
+
+📖 **상세 가이드: [`docs/api-keys-setup.md`](docs/api-keys-setup.md)**
+
+- [ ] **NCP** (console.ncloud.com): 결제수단 등록 → Maps 이용 신청
+      → Application 등록 (Web Dynamic Map + Directions 5 + Geocoding)
+      → Web 서비스 URL `http://localhost:3000`
+- [ ] **NCP 요금 알림 설정** (자동 차단은 없다. 알림이 유일한 감지 수단)
+- [ ] **네이버 개발자센터** (developers.naver.com): 검색 API 애플리케이션 등록
+- [ ] **Google Cloud**: 프로젝트 생성 + 결제 연결
+      → Maps JavaScript API / Places API **(New)** / Routes API 활성화
+- [ ] Google 키를 **2개로 분리** — 브라우저용(리퍼러 제한) / 서버용(API 제한)
+- [ ] **Google 할당량 상한 설정** ← 예산 알림은 알려주기만 한다. 차단은 할당량만 한다
+- **역할**: P · **공수**: 1세션 · **⚠️ 사용자가 직접 해야 함**
+
+> **🐛 이 작업을 준비하며 발견한 코드 버그**
+> **네이버는 두 개의 서로 다른 서비스다.** 처음에 하나로 착각해 같은 헤더를 썼다.
+> - 검색 = 네이버 **개발자센터** (`openapi.naver.com`, `X-Naver-Client-Id`, 무료)
+> - 지도/길찾기 = 네이버 **클라우드 플랫폼** (`*.ntruss.com`, `x-ncp-apigw-api-key-id`, 유료)
+>
+> 그대로 뒀다면 키를 다 발급받고도 검색에서 401만 받으며 원인을 못 찾았을 것이다.
+> 환경변수 이름도 `NCP_*` / `NAVER_SEARCH_*`로 분리해 호출부에서 헷갈리지 않게 했다.
+> 부수적으로 네이버 지역 검색이 **최대 5건**만 반환한다는 것도 확인해 `display`를 수정했다.
 
 ### W1-1. 환경변수 주입
 - [ ] `.env.local` 작성

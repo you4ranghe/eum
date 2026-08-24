@@ -30,8 +30,8 @@ export class NaverMapAdapter implements MapAdapter {
   private listeners: any[] = [];
 
   async init(container: HTMLElement, options: MapInitOptions): Promise<void> {
-    const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID;
-    if (!clientId) throw new Error('NEXT_PUBLIC_NAVER_MAP_CLIENT_ID 미설정');
+    const clientId = process.env.NEXT_PUBLIC_NCP_MAP_KEY_ID;
+    if (!clientId) throw new Error('NEXT_PUBLIC_NCP_MAP_KEY_ID 미설정');
 
     await loadScript(SDK_URL(clientId));
     const naver = window.naver;

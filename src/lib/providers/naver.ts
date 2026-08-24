@@ -6,9 +6,31 @@ import type {
   RouteLegResult,
 } from '@/lib/providers/types';
 
-const HEADERS = () => ({
-  'X-NCP-APIGW-API-KEY-ID': process.env.NAVER_API_KEY_ID ?? '',
-  'X-NCP-APIGW-API-KEY': process.env.NAVER_API_KEY ?? '',
+/**
+ * ⚠️ 네이버는 두 개의 서로 다른 서비스로 나뉜다. 자격증명도 헤더도 완전히 별개다.
+ * 이걸 하나로 착각하면 401만 계속 받으면서 원인을 못 찾는다.
+ *
+ * 1) 네이버 개발자센터 (developers.naver.com)
+ *    - 검색 API (지역/Local) — openapi.naver.com
+ *    - 헤더: X-Naver-Client-Id / X-Naver-Client-Secret
+ *    - 무료, 결제수단 불필요
+ *
+ * 2) 네이버 클라우드 플랫폼 (ncloud.com)
+ *    - 지도 표시(Web Dynamic Map), 길찾기(Directions), Geocoding — *.ntruss.com
+ *    - 헤더: x-ncp-apigw-api-key-id / x-ncp-apigw-api-key
+ *    - 유료(무료 한도 있음), 결제수단 등록 필수
+ */
+
+/** 네이버 개발자센터 — 검색 API용 */
+const SEARCH_HEADERS = () => ({
+  'X-Naver-Client-Id': process.env.NAVER_SEARCH_CLIENT_ID ?? '',
+  'X-Naver-Client-Secret': process.env.NAVER_SEARCH_CLIENT_SECRET ?? '',
+});
+
+/** 네이버 클라우드 플랫폼 — 지도/길찾기 API용 */
+const NCP_HEADERS = () => ({
+  'x-ncp-apigw-api-key-id': process.env.NCP_API_KEY_ID ?? '',
+  'x-ncp-apigw-api-key': process.env.NCP_API_KEY ?? '',
 });
 
 /** 네이버 Local Search. 국내 상호/주소 품질이 구글보다 높다. */
@@ -18,9 +40,12 @@ export const naverPlaceSearch: PlaceSearchProvider = {
     const region = getRegion(regionCode);
     const url = new URL('https://openapi.naver.com/v1/search/local.json');
     url.searchParams.set('query', `${region.name} ${query}`);
-    url.searchParams.set('display', '10');
+    url.searchParams.set('display', '5'); // 지역 검색은 최대 5건만 허용된다
 
-    const res = await fetch(url, { headers: HEADERS(), next: { revalidate: 300 } });
+    const res = await fetch(url, {
+      headers: SEARCH_HEADERS(),
+      next: { revalidate: 300 },
+    });
     if (!res.ok) throw new Error(`네이버 검색 실패: ${res.status}`);
     const data = (await res.json()) as { items: NaverLocalItem[] };
 
@@ -78,7 +103,7 @@ export const naverDirections: DirectionsProvider = {
     url.searchParams.set('goal', `${destination.lng},${destination.lat}`);
     url.searchParams.set('option', 'trafast'); // 실시간 빠른 길
 
-    const res = await fetch(url, { headers: HEADERS() });
+    const res = await fetch(url, { headers: NCP_HEADERS() });
     if (!res.ok) throw new Error(`네이버 경로 실패: ${res.status}`);
     const data = await res.json();
     const route = data?.route?.trafast?.[0];
