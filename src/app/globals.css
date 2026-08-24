@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #__next { height: 100%; }
+body {
+  @apply bg-surface text-gray-900 antialiased;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+/* 지도 SDK가 주입하는 오버레이가 Tailwind preflight로 깨지지 않도록 보호 */
+.map-canvas img { max-width: none; }
