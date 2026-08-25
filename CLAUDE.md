@@ -57,6 +57,13 @@ Next.js 16 (App Router) + TypeScript strict
 5. **`SUPABASE_SERVICE_ROLE_KEY`는 공용 캐시 테이블 쓰기에만 쓴다.**
    사용자 데이터에 쓰는 순간 RLS가 무의미해진다.
 
+   **문서화된 예외 1곳**: `src/app/api/auth/naver/callback/route.ts`.
+   네이버는 Supabase 내장 제공자가 아니라 사용자 생성과 세션 토큰 발급에
+   관리자 권한이 반드시 필요하다. 대신 아래를 지킨다 —
+   admin 클라이언트를 파일 밖으로 내보내지 않고, 네이버가 검증한 이메일 외에는
+   어떤 입력도 신뢰하지 않으며, 실패 시 항상 `/login`으로만 되돌린다.
+   **새로운 예외를 만들려면 여기에 먼저 적는다.**
+
 ### 2.2 주석 규칙
 
 ```ts

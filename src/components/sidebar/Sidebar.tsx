@@ -7,6 +7,7 @@ import { ItineraryPanel } from '@/components/sidebar/ItineraryPanel';
 import { RegionSelect } from '@/components/sidebar/RegionSelect';
 import { useTripStore } from '@/store/useTripStore';
 import { createMockTrip } from '@/lib/mock/mockTrip';
+import { AuthStatus, GuestBanner } from '@/components/auth/AuthStatus';
 
 type Tab = 'search' | 'itinerary';
 
@@ -32,16 +33,23 @@ export function Sidebar() {
   return (
     <div className="flex h-full flex-col">
       <header className="border-b border-border px-4 py-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h1 className="text-lg font-bold tracking-tight">이음</h1>
+          <AuthStatus />
+        </div>
+        <div className="mt-2 flex items-center justify-between gap-2">
+          {trip ? (
+            <p className="min-w-0 truncate text-xs text-gray-500">
+              {trip.title} · {trip.startDate} ~ {trip.endDate}
+            </p>
+          ) : (
+            <span />
+          )}
           <RegionSelect />
         </div>
-        {trip && (
-          <p className="mt-1 truncate text-xs text-gray-500">
-            {trip.title} · {trip.startDate} ~ {trip.endDate}
-          </p>
-        )}
       </header>
+
+      <GuestBanner />
 
       <nav role="tablist" className="flex border-b border-border">
         {(
